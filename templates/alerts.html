@@ -1,0 +1,75 @@
+<!-- templates/alerts.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alert-Herald: Active Alerts</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; line-height: 1.6; color: #333; max-width: 1200px; margin: 0 auto; padding: 20px; }
+        h1 { border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .alert-card { border: 1px solid #ddd; border-radius: 5px; margin-bottom: 20px; padding: 15px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .alert-card h2 { margin-top: 0; font-size: 1.2em; }
+        .alert-card .status { display: inline-block; padding: 4px 8px; border-radius: 12px; font-size: 0.8em; font-weight: bold; text-transform: uppercase; }
+        .status-firing { background-color: #f8d7da; color: #721c24; }
+        .status-acknowledged { background-color: #d1ecf1; color: #0c5460; }
+        .meta-info { font-size: 0.9em; color: #666; margin-top: 10px; }
+        .labels { margin-top: 10px; }
+        .labels kbd { background-color: #f0f0f0; border-radius: 3px; padding: 2px 4px; font-size: 0.85em; }
+        .actions { margin-top: 15px; }
+        .actions button { cursor: pointer; padding: 8px 12px; border: 1px solid #ccc; background-color: #f7f7f7; border-radius: 4px; margin-right: 10px; }
+        .actions button.ack { border-color: #007bff; color: #007bff; }
+        .actions button.resolve { border-color: #28a745; color: #28a745; }
+        .no-alerts { text-align: center; color: #888; padding: 50px; border: 2px dashed #eee; border-radius: 5px; }
+    </style>
+</head>
+<body>
+
+    <h1>Alert-Herald: Active Alerts</h1>
+    
+    {{if .Alerts}}
+        {{range .Alerts}}
+        <div class="alert-card">
+            <h2>{{if .LabelsMap.alertname}}{{.LabelsMap.alertname}}{{else}}No alertname{{end}}</h2>
+
+            <p>
+                <b>Status:</b> 
+                <span class="status status-{{ .Status }}">{{ .Status }}</span>
+            </p>
+
+            {{if .AnnotationsMap.summary}}
+                <p>{{ .AnnotationsMap.summary }}</p>
+            {{end}}
+
+            <div class="labels">
+                <b>Labels:</b><br/>
+                {{range $key, $value := .LabelsMap}}
+                    <kbd>{{ $key }}</kbd> = <code>{{ $value }}</code><br/>
+                {{end}}
+            </div>
+
+            <div class="meta-info">
+                Fired: {{ .StartsAt.Format "2006-01-02 15:04:05" }} | 
+                Assigned to: <strong>{{if .AssignedTo}}{{.AssignedTo}}{{else}}N/A{{end}}</strong>
+            </div>
+
+            <div class="actions">
+                {{if eq .Status "firing"}}
+                <form method="post" action="/alerts/{{.ID}}/ack" style="display:inline;">
+                    <button type="submit" class="ack">Acknowledge</button>
+                </form>
+                {{end}}
+                <form method="post" action="/alerts/{{.ID}}/resolve" style="display:inline;">
+                    <button type="submit" class="resolve">Resolve</button>
+                </form>
+            </div>
+        </div>
+        {{end}}
+    {{else}}
+        <div class="no-alerts">
+            <h2>All quiet on the Western Front.</h2>
+            <p>No active alerts.</p>
+        </div>
+    {{end}}
+</body>
+</html>
