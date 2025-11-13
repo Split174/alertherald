@@ -7,6 +7,149 @@ import (
 )
 
 func TestValidateSchedule(t *testing.T) {
+	existingUserIDs := map[string]struct{}{
+		"user-1": {},
+		"user-2": {},
+	}
+
+	testCases := []struct {
+		name     string
+		schedule Schedule
+		userIDs  map[string]struct{}
+		wantErr  bool
+	}{
+		{
+			name: "Valid daily schedule",
+			schedule: Schedule{
+				Name:      "developers",
+				Type:      "daily",
+				Users:     []string{"user-1", "user-2"},
+				StartTime: "10:00",
+			},
+			userIDs: existingUserIDs,
+			wantErr: false,
+		},
+		{
+			name: "Valid weekly schedule",
+			schedule: Schedule{
+				Name:      "developers",
+				Type:      "weekly",
+				Users:     []string{"user-1", "user-2"},
+				StartTime: "10:00",
+			},
+			userIDs: existingUserIDs,
+			wantErr: false,
+		},
+		{
+			name: "Unknown schedule type",
+			schedule: Schedule{
+				Name:      "developers",
+				Type:      "month",
+				Users:     []string{"user-1", "user-2"},
+				StartTime: "10:00",
+			},
+			userIDs: existingUserIDs,
+			wantErr: true,
+		},
+		{
+			name: "Empy schedule type",
+			schedule: Schedule{
+				Name:      "developers",
+				Type:      "",
+				Users:     []string{"user-1", "user-2"},
+				StartTime: "10:00",
+			},
+			userIDs: existingUserIDs,
+			wantErr: true,
+		},
+		{
+			name: "Invalid time",
+			schedule: Schedule{
+				Name:      "developers",
+				Type:      "weekly",
+				Users:     []string{"user-1", "user-2"},
+				StartTime: "10:00:05",
+			},
+			userIDs: existingUserIDs,
+			wantErr: true,
+		},
+		{
+			name: "No user for schedule",
+			schedule: Schedule{
+				Name:      "developers",
+				Type:      "weekly",
+				Users:     []string{},
+				StartTime: "10:00:05",
+			},
+			userIDs: existingUserIDs,
+			wantErr: true,
+		},
+		{
+			name: "No exist user",
+			schedule: Schedule{
+				Name:      "developers",
+				Type:      "weekly",
+				Users:     []string{"user-1", "ghost"},
+				StartTime: "10:00:05",
+			},
+			userIDs: existingUserIDs,
+			wantErr: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.schedule.validate(tc.userIDs)
+			if (err != nil) != tc.wantErr {
+				t.Errorf("Schedule.validate() error = %v, wantErr %v", err, tc.wantErr)
+			}
+		})
+	}
+
+}
+
+func TestValidatePolicy(t *testing.T) {
+
+	validEscalationTargets := map[string]struct{}{
+		"user-1":           {},
+		"user-2":           {},
+		"daily-developers": {},
+	}
+
+	testCases := []struct {
+		name              string
+		policy            EscalationPolicy
+		escalationTargets map[string]struct{}
+		wantErr           bool
+	}{
+		{
+			name: "Valid policy",
+			policy: EscalationPolicy{
+				Name: "database",
+				Match: Labels{
+					"severity": "critical",
+				},
+				Steps: []EscalationStep{
+					{
+						Target: "user-1",
+						Wait:   30 * time.Minute,
+					},
+				},
+			},
+			escalationTargets: validEscalationTargets,
+			wantErr:           false,
+		},
+		// TODO
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			err := tc.policy.validate(tc.escalationTargets)
+			if (err != nil) != tc.wantErr {
+				t.Errorf("Schedule.validate() error = %v, wantErr %v", err, tc.wantErr)
+			}
+		})
+	}
 
 }
 
