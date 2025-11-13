@@ -1,0 +1,40 @@
+users:
+  - id: "user-1"
+    name: "Alice"
+    telegram_id: 123456789
+
+  - id: "user-2"
+    name: "Bob"
+    telegram_id: 987654321
+    
+  - id: "user-3-ceo"
+    name: "Charlie"
+    telegram_id: 555555555
+
+schedules:
+  - name: "daily-dev-rotation"
+    type: "daily"
+    start_time: "10:00"
+    users:
+      - "user-1"
+      - "user-2"
+
+escalation_policies:
+  - name: "Critical DB Policy"
+    match:
+      severity: "critical"
+      service: "database"
+    steps:
+      - target: "daily-dev-rotation"
+        wait: 5m
+      - target: "user-3-ceo"
+        wait: 15m
+      - target: "user-3-ceo"
+        wait: 30m
+
+  - name: "Default Warning Policy"
+    match:
+      severity: "warning"
+    steps:
+      - target: "user-1"
+        wait: 1h

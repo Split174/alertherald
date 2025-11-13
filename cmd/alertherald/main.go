@@ -21,7 +21,7 @@ func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	slog.SetDefault(logger)
 
-	configPath := flag.String("config.path", "./config", "Path to the configuration file or directory.")
+	configPath := flag.String("config.path", "./config/config.yaml", "Path to the configuration file or directory.")
 	dbPath := flag.String("db.path", "./alertherald.db", "Path to the SQLite database file.")
 	telegramToken := flag.String("telegram.token", "", "Telegram Bot Token.")
 	listenAddr := flag.String("web.listen-address", ":8080", "Address to listen on for web interface and API.")
