@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/Split174/alert-herald/internal/types"
-	_ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite"
 )
 
 const schema = `
@@ -42,7 +42,7 @@ type Store struct {
 }
 
 func NewStore(dsn string) (*Store, error) {
-	db, err := sql.Open("sqlite3", dsn)
+	db, err := sql.Open("sqlite", dsn)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}

@@ -123,7 +123,7 @@ func TestValidatePolicy(t *testing.T) {
 		wantErr           bool
 	}{
 		{
-			name: "Valid policy",
+			name: "Valid policy for user",
 			policy: EscalationPolicy{
 				Name: "database",
 				Match: Labels{
@@ -139,7 +139,86 @@ func TestValidatePolicy(t *testing.T) {
 			escalationTargets: validEscalationTargets,
 			wantErr:           false,
 		},
-		// TODO
+		{
+			name: "Valid policy for schedule",
+			policy: EscalationPolicy{
+				Name: "database",
+				Match: Labels{
+					"severity": "critical",
+				},
+				Steps: []EscalationStep{
+					{
+						Target: "daily-developers",
+						Wait:   30 * time.Minute,
+					},
+				},
+			},
+			escalationTargets: validEscalationTargets,
+			wantErr:           false,
+		},
+		{
+			name: "Zero escalation steps error",
+			policy: EscalationPolicy{
+				Name: "database",
+				Match: Labels{
+					"severity": "critical",
+				},
+				Steps: []EscalationStep{},
+			},
+			escalationTargets: validEscalationTargets,
+			wantErr:           true,
+		},
+		{
+			name: "Target does not point to a valid schedule",
+			policy: EscalationPolicy{
+				Name: "database",
+				Match: Labels{
+					"severity": "critical",
+				},
+				Steps: []EscalationStep{
+					{
+						Target: "weekyl-developers",
+						Wait:   30 * time.Minute,
+					},
+				},
+			},
+			escalationTargets: validEscalationTargets,
+			wantErr:           true,
+		},
+		{
+			name: "Target does not point to a valid user",
+			policy: EscalationPolicy{
+				Name: "database",
+				Match: Labels{
+					"severity": "critical",
+				},
+				Steps: []EscalationStep{
+					{
+						Target: "user-8",
+						Wait:   30 * time.Minute,
+					},
+				},
+			},
+			escalationTargets: validEscalationTargets,
+			wantErr:           true,
+		},
+		{
+			name: "Negative wait",
+			policy: EscalationPolicy{
+				Name: "database",
+				Match: Labels{
+					"severity": "critical",
+				},
+				Steps: []EscalationStep{
+					{
+						Target: "user-1",
+						Wait:   -30 * time.Minute,
+					},
+				},
+			},
+			escalationTargets: validEscalationTargets,
+			wantErr:           true,
+		},
 	}
 
 	for _, tc := range testCases {
